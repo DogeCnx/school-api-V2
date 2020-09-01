@@ -53,6 +53,27 @@ class SubjectController {
     
         return { status: 200, error: undefined, data: { title } };
       }
+
+      async update( {request} ) {
+
+        const {body , params } = request
+        const { id } = params
+        const { title } = body
+
+        const subjectUpdate = await Database.table('subjects').where({subject_id : id }).update({title})
+        
+        //or display value teacher SELET
+        const subject = await Database.table('subjects').where({subject_id : id }).first()
+
+        return {status : 200 , error : undefined ,data : subject }
+    }
+
+    async destroy  ({ request }){
+        const {id} =request.params
+        const subject  = await Database.table('subjects').where({subject_id : id }).delete()
+
+        return {status : 200 , error : undefined ,data : "succeseful"}
+    }
 }
 
 module.exports = SubjectController

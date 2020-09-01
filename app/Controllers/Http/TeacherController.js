@@ -71,6 +71,27 @@ class TeacherController {
         return {status : 200 , error : undefined ,data : {first_name ,last_name  ,email} }
 
     }
+
+    async update( {request} ) {
+
+        const {body , params } = request
+        const { id } = params
+        const { first_name, last_name ,email } = body
+
+        const teacherUpdate = await Database.table('teachers').where({teacher_id : id }).update({first_name ,last_name  ,email})
+        
+        //or display value teacher SELET
+        const teacher = await Database.table('teachers').where({teacher_id : id }).first()
+
+        return {status : 200 , error : undefined ,data : teacher }
+    }
+
+    async destroy  ({ request }){
+        const {id} =request.params
+        const teacher  = await Database.table('teachers').where({teacher_id : id }).delete()
+
+        return {status : 200 , error : undefined ,data : "succeseful"}
+    }
 }
 
 module.exports = TeacherController

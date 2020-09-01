@@ -3,6 +3,11 @@
 const Database = use('Database')
 const Hash = use('Hash')
 
+
+//new RegExp(/hello/gi).test("Hello World")
+//new RegExp("hello","gi").test("Hello World")
+const Validator = use('Validator')
+
 function numberTypeParamvalidator(number) {
     if(Number.isNaN(parseInt(number))) {
         //throw new Error(`params : ${number} is not supported, please use number type params instead`) 
@@ -50,15 +55,27 @@ class TeacherController {
 
         const {first_name ,last_name , email ,password } = request.body
 
-        const missingKey = []
-        if(!first_name) missingKey.push('first_name')
-        if(!last_name) missingKey.push('last_name')
-        if(!email) missingKey.push('email')
-        if(!password) missingKey.push('last_name')
 
-        if (missingKey.length){
-            return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
+        const rules = {
+            frist_name :'required' ,
+            last_name : 'required',
+            email :'required|email|unique:teachers,email' , //this like callfunction unique("teachers") 
+            password : 'required|min:8|max:16' //min(8)
         }
+        const validation = await Validator.validate(request.body, rules)
+        if (validation.fails()){
+            return {status : 422 ,error : validation.messages() ,data : undefined }
+        }
+
+        // const missingKey = []
+        // if(!first_name) missingKey.push('first_name')
+        // if(!last_name) missingKey.push('last_name')
+        // if(!email) missingKey.push('email')
+        // if(!password) missingKey.push('last_name')
+
+        // if (missingKey.length){
+        //     return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
+        // }
 
 
         const hashedPassword = await Hash.make(password)

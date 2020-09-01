@@ -49,27 +49,41 @@ class StudentController {
 
     async store({ request }) {
 
-        const {first_name ,last_name , email ,password } = request.body
+        const {frist_name ,last_name , email ,password } = request.body
 
-        const missingKey = []
-        if(!first_name) missingKey.push('first_name')
-        if(!last_name) missingKey.push('last_name')
-        if(!email) missingKey.push('email')
-        if(!password) missingKey.push('password')
 
-        if (missingKey.length){
-            return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
+        const rules = {
+            frist_name :'required' ,
+            last_name : 'required',
+            email :'required|email|unique:students,email' , //this like callfunction unique("teachers") 
+            password : 'required|min:8|max:16' //min(8)
         }
+        const validation = await Validator.validate(request.body, rules)
+        if (validation.fails()){
+            return {status : 422 ,error : validation.messages() ,data : undefined }
+        }
+        // const missingKey = []
+        // if(!frist_name) missingKey.push('frist_name')
+        // if(!last_name) missingKey.push('last_name')
+        // if(!email) missingKey.push('email')
+        // if(!password) missingKey.push('password')
+
+        // if (missingKey.length){
+        //     return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
+        // }
 
 
-        const hashedPassword = await Hash.make(password)
+        //const hashedPassword = await Hash.make(password)
+
+
+        
 
         const students = await Database
             .table('students')
-            .insert({first_name ,last_name , password : hashedPassword,email})
+            .insert({frist_name ,last_name , password :password ,email})
 
 
-        return {status : 200 , error : undefined ,data : {first_name ,last_name  ,email} }
+        return {status : 200 , error : undefined ,data : {frist_name ,last_name  ,email} }
 
     }
 
@@ -77,9 +91,9 @@ class StudentController {
 
         const {body , params } = request
         const { id } = params
-        const { first_name, last_name ,email } = body
+        const { frist_name, last_name ,email } = body
 
-        const studentUpdate = await Database.table('students').where({student_id : id }).update({first_name ,last_name  ,email})
+        const studentUpdate = await Database.table('students').where({student_id : id }).update({frist_name ,last_name  ,email})
         
         //or display value teacher SELET
         const student = await Database.table('students').where({student_id : id }).first()

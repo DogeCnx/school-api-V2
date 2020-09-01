@@ -43,13 +43,19 @@ class SubjectController {
     
       async store({ request }) {
         const { title } = request.body;
-    
-        if (!title)
-          return { status: 422, error: "title is missing.", data: undefined };
-    
-        await Database.table("subjects").insert({
-            title,
-        });
+        
+          const rules = {
+            title :'required' ,
+
+          }
+          const validation = await Validator.validate(request.body, rules)
+          if (validation.fails()){
+              return {status : 422 ,error : validation.messages() ,data : undefined }
+          }
+        
+          await Database.table("subjects").insert({
+              title,
+          });
     
         return { status: 200, error: undefined, data: { title } };
       }

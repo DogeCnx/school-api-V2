@@ -51,13 +51,21 @@ class EnrollmentController {
 
         const {mark } = request.body
 
-        const missingKey = []
-        if(!mark) missingKey.push('mark')
+        const rules = {
+            mark :'required' ,
 
-
-        if (missingKey.length){
-            return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
         }
+        const validation = await Validator.validate(request.body, rules)
+        if (validation.fails()){
+            return {status : 422 ,error : validation.messages() ,data : undefined }
+        }
+        // const missingKey = []
+        // if(!mark) missingKey.push('mark')
+
+
+        // if (missingKey.length){
+        //     return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
+        // }
 
 
         const hashedPassword = await Hash.make(password)

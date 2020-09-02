@@ -17,6 +17,18 @@ function numberTypeParamvalidator(number) {
     return {}
 
 }
+function validateFn(request) {
+    const rules = {
+      title :'required' ,
+
+    }
+    const validation = await Validator.validate(request.body, rules)
+    if (validation.fails()){
+        return {status : 422 ,error : validation.messages() ,data : undefined }
+  }
+}
+
+
 class SubjectController {
 
     async index( {request }) {
@@ -38,6 +50,8 @@ class SubjectController {
         const extractedReferences =references.split(",")
         subjects.with(extractedReferences)
       }
+
+
       return {status : 200 ,error : undefined , data : await subjects.fetch()};
      
     }
@@ -45,7 +59,7 @@ class SubjectController {
       async show({ request }) {
         const { subject_id } = request.params;
     
-        const validatedValue = numberTypeParamValidator(id);
+        const validatedValue = numberTypeParamValidator(subject_id);
     
         if (validatedValue.error)
           return { status: 500, error: validatedValue.error, data: undefined };
@@ -64,14 +78,14 @@ class SubjectController {
       // async store({ request }) {
       //   const { title } = request.body;
         
-      //     const rules = {
-      //       title :'required' ,
+          // const rules = {
+          //   title :'required' ,
 
-      //     }
-      //     const validation = await Validator.validate(request.body, rules)
-      //     if (validation.fails()){
-      //         return {status : 422 ,error : validation.messages() ,data : undefined }
-      //     }
+          // }
+          // const validation = await Validator.validate(request.body, rules)
+          // if (validation.fails()){
+          //     return {status : 422 ,error : validation.messages() ,data : undefined }
+          // }
         
       //     await Database.table("subjects").insert({
       //         title,
@@ -87,11 +101,9 @@ class SubjectController {
         await subject.save()
 
         //const subject = await Subject.create({title,teacher_id})
-
         return { status: 200, error: undefined, data: { title } };
 
      }
-
       async update( {request} ) {
 
         const {body , params } = request
@@ -108,6 +120,7 @@ class SubjectController {
 
     async destroy  ({ request }){
         const {id} =request.params
+        
         const subject  = await Database.table('subjects').where({subject_id : id }).delete()
 
         return {status : 200 , error : undefined ,data : "succeseful"}

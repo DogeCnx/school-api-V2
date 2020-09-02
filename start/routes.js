@@ -43,6 +43,8 @@ Route.group(() => {
   //enrollments
   Route.resource('/enrollments', 'EnrollmentController');
 
-  
+  //relationship
+  Route.resource('/subjects','SubjectController')
+  Route.get('/subjects/:id/teacher','SubjectController.showTeacher')
 
 }).prefix('api/v1')

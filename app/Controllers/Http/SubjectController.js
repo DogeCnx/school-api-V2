@@ -17,17 +17,6 @@ function numberTypeParamvalidator(number) {
     return {}
 
 }
-function validateFn(request) {
-    const rules = {
-      title :'required' ,
-
-    }
-    const validation = await Validator.validate(request.body, rules)
-    if (validation.fails()){
-        return {status : 422 ,error : validation.messages() ,data : undefined }
-  }
-}
-
 
 class SubjectController {
 

@@ -2,6 +2,8 @@
 
 const Database = use('Database')
 const Hash = use('Hash')
+const Validator = use('Validator')
+const Enrollment = use('App/Models/Enrollment')
 
 function numberTypeParamvalidator(number) {
     if(Number.isNaN(parseInt(number))) {
@@ -21,62 +23,96 @@ function numberTypeParamvalidator(number) {
 class EnrollmentController {
 
     
-    async index(){
-        const enrollments  = await Database.table('enrollments');
+    // async index(){
+    //     const enrollments  = await Database.table('enrollments');
 
-        return {status :200 ,error : undefined ,data : enrollments }
-    }
+    //     return {status :200 ,error : undefined ,data : enrollments }
+    // }
+    async index( {request }) {
 
-    async show({ request }){
-        const { enrollment } = request.params
-
-        //check type { id }
-        console.log(typeof parseInt(enrollment))
-        const validatedValue = numberTypeParamvalidator(enrollment)
-
-        if(validatedValue.error){
-            return {status : 500 ,error : validatedValue.error, data : undefined }
+        const {references = undefined} =request.qs 
+        const enrollments = Enrollment.query()
+    
+        if(references){
+          const extractedReferences =references.split(",")
+          enrollments.with(extractedReferences)
         }
-
-
-
-        const enrollments  = await Database.select('*').from('enrollments').where("enrollment",student_id).first()
-
-        return {status :200 ,error : undefined ,data : enrollments || {} }  //0,"",false,undifined,null ==> false
-        //function much return one type ever!!
+    
+        return {status : 200 ,error : undefined , data : await enrollments.fetch()};
+       
     }
 
+    // async show({ request }){
+    //     const { enrollment } = request.params
 
+    //     //check type { id }
+    //     console.log(typeof parseInt(enrollment))
+    //     const validatedValue = numberTypeParamvalidator(enrollment)
+
+    //     if(validatedValue.error){
+    //         return {status : 500 ,error : validatedValue.error, data : undefined }
+    //     }
+
+
+
+    //     const enrollments  = await Database.select('*').from('enrollments').where("enrollment",student_id).first()
+
+    //     return {status :200 ,error : undefined ,data : enrollments || {} }  //0,"",false,undifined,null ==> false
+    //     //function much return one type ever!!
+    // }
+    async show({ request }) {
+        const { enrollment } = request.params;
+      
+        const validatedValue = numberTypeParamValidator(enrollment);
+      
+        if (validatedValue.error)
+            return { status: 500, error: validatedValue.error, data: undefined };
+    
+        let data = await Enrollment.find(enrollment);  //ใช้แทนด้านล่าง
+    
+      
+        return { status: 200, error: undefined, data: data || {} };
+    }
+    
+
+    // async store({ request }) {
+
+    //     const {mark } = request.body
+
+    //     const rules = {
+    //         mark :'required' ,
+
+    //     }
+    //     const validation = await Validator.validate(request.body, rules)
+    //     if (validation.fails()){
+    //         return {status : 422 ,error : validation.messages() ,data : undefined }
+    //     }
+    //     // const missingKey = []
+    //     // if(!mark) missingKey.push('mark')
+
+
+    //     // if (missingKey.length){
+    //     //     return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
+    //     // }
+
+
+    //     const hashedPassword = await Hash.make(password)
+
+    //     const enrollments  = await Database
+    //         .table('enrollments')
+    //         .insert({mark})
+
+
+    //     return {status : 200 , error : undefined ,data : enrollments  }
+
+    // }
     async store({ request }) {
-
-        const {mark } = request.body
-
-        const rules = {
-            mark :'required' ,
-
-        }
-        const validation = await Validator.validate(request.body, rules)
-        if (validation.fails()){
-            return {status : 422 ,error : validation.messages() ,data : undefined }
-        }
-        // const missingKey = []
-        // if(!mark) missingKey.push('mark')
-
-
-        // if (missingKey.length){
-        //     return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
-        // }
-
-
-        const hashedPassword = await Hash.make(password)
-
-        const enrollments  = await Database
-            .table('enrollments')
-            .insert({mark})
-
-
-        return {status : 200 , error : undefined ,data : enrollments  }
-
+        const {mark,enrollment} = request.body
+        const subject = await Enrollment.create({mark,enrollment})
+        await Enrollment.save()
+    
+    
+        return { status: 200, error: undefined, data:{mark,enrollment} };
     }
 
     async update( {request} ) {

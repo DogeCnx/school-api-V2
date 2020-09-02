@@ -2,6 +2,8 @@
 
 const Database = use('Database')
 const Hash = use('Hash')
+const Validator = use('Validator')
+const Group = use('App/Models/Group')
 
 function numberTypeParamvalidator(number) {
     if(Number.isNaN(parseInt(number))) {
@@ -19,51 +21,87 @@ function numberTypeParamvalidator(number) {
 
 class GroupController {
 
-    async index() {
-        const data = await Database.table("groups");
+    // async index() {
+    //     const data = await Database.table("groups");
     
-        return data;
+    //     return data;
+    //   }
+    async index( {request }) {
+
+      const {references = undefined} =request.qs 
+      const groups = Group.query()
+  
+      if(references){
+        const extractedReferences =references.split(",")
+        groups.with(extractedReferences)
       }
+  
+      return {status : 200 ,error : undefined , data : await groups.fetch()};
+     
+  }
     
-      async show({ request }) {
-        const { id } = request.params;
+      // async show({ request }) {
+      //   const { id } = request.params;
     
-        const validatedValue = numberTypeParamValidator(id);
+      //   const validatedValue = numberTypeParamValidator(id);
     
+      //   if (validatedValue.error)
+      //     return { status: 500, error: validatedValue.error, data: undefined };
+    
+      //   const group = await Database.select("*")
+      //     .from("groups")
+      //     .where({
+      //       group_id: id,
+      //     })
+      //     .first();
+    
+      //   return { status: 200, error: undefined, data: group || {} };
+      // }
+    async show({ request }) {
+        const { group_id } = request.params;
+      
+        const validatedValue = numberTypeParamValidator(group_id);
+      
         if (validatedValue.error)
-          return { status: 500, error: validatedValue.error, data: undefined };
+            return { status: 500, error: validatedValue.error, data: undefined };
     
-        const group = await Database.select("*")
-          .from("groups")
-          .where({
-            group_id: id,
-          })
-          .first();
+        let data = await Group.find(group_id);  //ใช้แทนด้านล่าง
     
-        return { status: 200, error: undefined, data: group || {} };
-      }
+      
+        return { status: 200, error: undefined, data: data || {} };
+    }
     
-      async store({ request }) {
-        const { name } = request.body;
+      // async store({ request }) {
+      //   const { name } = request.body;
     
         
-        const rules = {
-            name :'required' ,
+      //   const rules = {
+      //       name :'required' ,
 
-        }
-        const validation = await Validator.validate(request.body, rules)
-        if (validation.fails()){
-            return {status : 422 ,error : validation.messages() ,data : undefined }
-        }
+      //   }
+      //   const validation = await Validator.validate(request.body, rules)
+      //   if (validation.fails()){
+      //       return {status : 422 ,error : validation.messages() ,data : undefined }
+      //   }
 
         
-        await Database.table("groups").insert({
-          name,
-        });
+      //   await Database.table("groups").insert({
+      //     name,
+      //   });
     
-        return { status: 200, error: undefined, data: { name } };
-      }
+      //   return { status: 200, error: undefined, data: { name } };
+      // }
 
+    
+      
+    async store({ request }) {
+      const { name,group_id} = request.body
+      const  groups = await Group.create({group_id, name })
+      await  Group.save()
+
+
+      return { status: 200, error: undefined, data: {group_id, name } };
+    }
     async update( {request} ) {
 
         const {body , params } = request

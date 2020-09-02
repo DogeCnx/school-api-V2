@@ -2,6 +2,7 @@
 
 const Database = use('Database')
 const Hash = use('Hash')
+const Student = use('App/Models/Student')
 
 function numberTypeParamvalidator(number) {
     if(Number.isNaN(parseInt(number))) {
@@ -21,70 +22,105 @@ function numberTypeParamvalidator(number) {
 class StudentController {
 
     
-    async index(){
-        const students = await Database.table('students');
+    // async index(){
+    //     const students = await Database.table('students');
 
-        return {status :200 ,error : undefined ,data : students }
-    }
+    //     return {status :200 ,error : undefined ,data : students }
+    // }
+    async index( {request }) {
 
-    async show({ request }){
-        const { student_id } = request.params
-
-        //check type { id }
-        console.log(typeof parseInt(student_id))
-        const validatedValue = numberTypeParamvalidator(student_id)
-
-        if(validatedValue.error){
-            return {status : 500 ,error : validatedValue.error, data : undefined }
+        const {references = undefined} =request.qs 
+        const studens =Student.query()
+    
+        if(references){
+          const extractedReferences =references.split(",")
+          studens.with(extractedReferences)
         }
+    
+        return {status : 200 ,error : undefined , data : await studens.fetch()};
+       
+    }
+
+    // async show({ request }){
+    //     const { student_id } = request.params
+
+    //     //check type { id }
+    //     console.log(typeof parseInt(student_id))
+    //     const validatedValue = numberTypeParamvalidator(student_id)
+
+    //     if(validatedValue.error){
+    //         return {status : 500 ,error : validatedValue.error, data : undefined }
+    //     }
 
 
 
-        const students = await Database.select('*').from('students').where("student_id",student_id).first()
+    //     const students = await Database.select('*').from('students').where("student_id",student_id).first()
 
-        return {status :200 ,error : undefined ,data : students || {} }  //0,"",false,undifined,null ==> false
-        //function much return one type ever!!
+    //     return {status :200 ,error : undefined ,data : students || {} }  //0,"",false,undifined,null ==> false
+    //     //function much return one type ever!!
+    // }
+    async show({ request }) {
+        const { studen_id } = request.params;
+      
+        const validatedValue = numberTypeParamValidator(studen_id);
+      
+        if (validatedValue.error)
+            return { status: 500, error: validatedValue.error, data: undefined };
+    
+        let data = await Student.find(studen_id);  //ใช้แทนด้านล่าง
+    
+      
+        return { status: 200, error: undefined, data: data || {} };
     }
 
 
+    // async store({ request }) {
+
+    //     const {frist_name ,last_name , email ,password } = request.body
+
+
+    //     const rules = {
+    //         frist_name :'required' ,
+    //         last_name : 'required',
+    //         email :'required|email|unique:students,email' , //this like callfunction unique("teachers") 
+    //         password : 'required|min:8|max:16' //min(8)
+    //     }
+    //     const validation = await Validator.validate(request.body, rules)
+    //     if (validation.fails()){
+    //         return {status : 422 ,error : validation.messages() ,data : undefined }
+    //     }
+    //     // const missingKey = []
+    //     // if(!frist_name) missingKey.push('frist_name')
+    //     // if(!last_name) missingKey.push('last_name')
+    //     // if(!email) missingKey.push('email')
+    //     // if(!password) missingKey.push('password')
+
+    //     // if (missingKey.length){
+    //     //     return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
+    //     // }
+
+
+    //     //const hashedPassword = await Hash.make(password)
+
+    //     const students = await Database
+    //         .table('students')
+    //         .insert({frist_name ,last_name , password :password ,email})
+
+
+    //     return {status : 200 , error : undefined ,data : {frist_name ,last_name  ,email} }
+
+    // }
     async store({ request }) {
-
-        const {frist_name ,last_name , email ,password } = request.body
-
-
-        const rules = {
-            frist_name :'required' ,
-            last_name : 'required',
-            email :'required|email|unique:students,email' , //this like callfunction unique("teachers") 
-            password : 'required|min:8|max:16' //min(8)
-        }
-        const validation = await Validator.validate(request.body, rules)
-        if (validation.fails()){
-            return {status : 422 ,error : validation.messages() ,data : undefined }
-        }
-        // const missingKey = []
-        // if(!frist_name) missingKey.push('frist_name')
-        // if(!last_name) missingKey.push('last_name')
-        // if(!email) missingKey.push('email')
-        // if(!password) missingKey.push('password')
-
-        // if (missingKey.length){
-        //     return {status : 422 ,error : `${missingKey} is missing.` ,data : undefined }
-        // }
-
-
-        //const hashedPassword = await Hash.make(password)
-
-
-        
-
-        const students = await Database
-            .table('students')
-            .insert({frist_name ,last_name , password :password ,email})
-
-
-        return {status : 200 , error : undefined ,data : {frist_name ,last_name  ,email} }
-
+        const { frist_name ,last_name , email ,password} = request.body
+        const students = new Student()
+        students.frist_name= frist_name
+        students.last_name = last_name
+        students.email = email
+        students.password = password
+        await Student.save()
+    
+    
+        return { status: 200, error: undefined, data: "Complate" };
     }
 
     async update( {request} ) {
